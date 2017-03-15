@@ -1,0 +1,30 @@
+hash: c16bd88599793f87956b57eab0219d381d0fbdfe17ed0dc627c6bde7f6282f36
+updated: 2017-03-14T22:42:40.216208099-04:00
+imports:
+- name: github.com/go-gl/gl
+  version: b303bcb3e83b7ef645a5104e1c2db7f8d9e8918a
+  subpackages:
+  - v4.1-core/gl
+- name: github.com/go-gl/glfw
+  version: 6e7202f2d691ed1d79bcdaed6cce0061006ce565
+  subpackages:
+  - v3.2/glfw
+- name: github.com/go-gl/mathgl
+  version: 9e3ea3e806141087fbb83a8a8e7038bf73eff120
+  subpackages:
+  - mgl32
+- name: github.com/mattn/go-isatty
+  version: 30a891c33c7cde7b02a981314b4228ec99380cca
+- name: github.com/mgutz/ansi
+  version: c286dcecd19ff979eeb73ea444e479b903f2cfcb
+- name: github.com/unchartedsoftware/plog
+  version: bbb4bc4151f23ea489aff06d2a27f10e1a935993
+- name: golang.org/x/image
+  version: c39d899a5b7c98dbf377212e2c1a6f14128054b7
+  subpackages:
+  - math/f32
+- name: golang.org/x/sys
+  version: 30237cf4eefd639b184d1f2cb77a581ea0be8947
+  subpackages:
+  - unix
+testImports: []

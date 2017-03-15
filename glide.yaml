@@ -1,0 +1,12 @@
+package: github.com/kbirk/cauldron
+import:
+- package: github.com/go-gl/gl
+  subpackages:
+  - v4.1-core/gl
+- package: github.com/go-gl/glfw
+  subpackages:
+  - v3.2/glfw
+- package: github.com/go-gl/mathgl
+  subpackages:
+  - mgl32
+- package: github.com/unchartedsoftware/plog
