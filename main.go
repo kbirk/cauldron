@@ -47,7 +47,7 @@ func (e *Effect) Draw(now time.Time) {
 	shockwaveTechnique.Draw(
 		drawShockwave(
 			e.Shockwave,
-			mgl32.Vec4{1.0, 0.98, 0.96, 0.4},
+			mgl32.Vec4{1.0, 0.98, 0.96, 0.2},
 			projection,
 			view,
 			model,
@@ -145,7 +145,7 @@ func newShockwaveTechnique(viewport *render.Viewport) (*render.Technique, error)
 	technique.Enable(gl.BLEND)
 	technique.Disable(gl.DEPTH_TEST)
 	technique.Shader(shader)
-	technique.BlendFunc(gl.SRC_ALPHA, gl.ONE)
+	technique.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 	technique.Viewport(viewport)
 	// return technique
 	return technique, nil
@@ -368,7 +368,7 @@ func drawShockwave(renderable *render.Renderable, color mgl32.Vec4, projection, 
 	command.Uniform("uView", &view[0])
 	command.Uniform("uModel", &model[0])
 	command.Uniform("uColor", &color[0])
-	command.Uniform("uForce", float32(15.0))
+	command.Uniform("uForce", float32(150.0))
 	command.Uniform("uTime", time)
 	command.Renderable(renderable)
 	return []*render.Command{
@@ -389,7 +389,7 @@ func handleMouseButton(w *glfw.Window, button glfw.MouseButton, action glfw.Acti
 		effects = append(effects, &Effect{
 			Explosion: createExplosion(500, 20, 200, 4),
 			Smoke:     createSmoke(1000, 20, 140, 10),
-			Shockwave: createCircle(10.0, 64),
+			Shockwave: createCircle(1.0, 64),
 			Position:  mgl32.Vec2{float32(x), float32(float64(height) - y)},
 			Time:      time.Now(),
 		})
