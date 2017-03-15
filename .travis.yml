@@ -1,4 +1,7 @@
 language: go
+addons:
+  apt_packages:
+    - libgles2-mesa-dev
 notifications:
   email: false
 go:
