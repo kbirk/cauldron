@@ -2,6 +2,7 @@ language: go
 addons:
   apt_packages:
     - libgles2-mesa-dev
+    - xorg-dev
 notifications:
   email: false
 go:

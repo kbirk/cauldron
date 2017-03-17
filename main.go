@@ -20,6 +20,7 @@ const (
 )
 
 var (
+	viewport           *render.Viewport
 	camera             *render.Transform
 	explosionTechnique *render.Technique
 	smokeTechnique     *render.Technique
@@ -84,13 +85,11 @@ func newFlatTechnique(viewport *render.Viewport) (*render.Technique, error) {
 		return nil, err
 	}
 	// create technique
-	technique := &render.Technique{}
+	technique := render.NewTechnique()
 	technique.Enable(gl.BLEND)
-	technique.Disable(gl.DEPTH_TEST)
 	technique.Shader(shader)
 	technique.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 	technique.Viewport(viewport)
-	// return technique
 	return technique, nil
 }
 
@@ -103,13 +102,11 @@ func newExplosionTechnique(viewport *render.Viewport) (*render.Technique, error)
 		return nil, err
 	}
 	// create technique
-	technique := &render.Technique{}
+	technique := render.NewTechnique()
 	technique.Enable(gl.BLEND)
-	technique.Disable(gl.DEPTH_TEST)
 	technique.Shader(shader)
 	technique.BlendFunc(gl.SRC_ALPHA, gl.ONE)
 	technique.Viewport(viewport)
-	// return technique
 	return technique, nil
 }
 
@@ -122,13 +119,11 @@ func newSmokeTechnique(viewport *render.Viewport) (*render.Technique, error) {
 		return nil, err
 	}
 	// create technique
-	technique := &render.Technique{}
+	technique := render.NewTechnique()
 	technique.Enable(gl.BLEND)
-	technique.Disable(gl.DEPTH_TEST)
 	technique.Shader(shader)
 	technique.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 	technique.Viewport(viewport)
-	// return technique
 	return technique, nil
 }
 
@@ -141,13 +136,11 @@ func newShockwaveTechnique(viewport *render.Viewport) (*render.Technique, error)
 		return nil, err
 	}
 	// create technique
-	technique := &render.Technique{}
+	technique := render.NewTechnique()
 	technique.Enable(gl.BLEND)
-	technique.Disable(gl.DEPTH_TEST)
 	technique.Shader(shader)
 	technique.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 	technique.Viewport(viewport)
-	// return technique
 	return technique, nil
 }
 
@@ -332,6 +325,15 @@ func drawFlat(renderable *render.Renderable, color mgl32.Vec4, projection, view,
 	}
 }
 
+func drawFBO(renderable *render.Renderable, fbo *render.FrameBuffer, opacity float32) []*render.Command {
+	command := &render.Command{}
+	command.Uniform("uOpacity", opacity)
+	command.Renderable(renderable)
+	return []*render.Command{
+		command,
+	}
+}
+
 func drawExplosion(renderable *render.Renderable, color mgl32.Vec4, projection, view, model mgl32.Mat4, time float32) []*render.Command {
 	command := &render.Command{}
 	command.Uniform("uProjection", &projection[0])
@@ -387,14 +389,25 @@ func handleMouseButton(w *glfw.Window, button glfw.MouseButton, action glfw.Acti
 		x, y := w.GetCursorPos()
 		_, height := w.GetSize()
 		effects = append(effects, &Effect{
-			Explosion: createExplosion(500, 20, 200, 4),
-			Smoke:     createSmoke(1000, 20, 140, 10),
+			Explosion: createExplosion(200, 20, 200, 4),
+			Smoke:     createSmoke(200, 20, 140, 10),
 			Shockwave: createCircle(1.0, 64),
 			Position:  mgl32.Vec2{float32(x), float32(float64(height) - y)},
 			Time:      time.Now(),
 		})
 	}
 }
+
+func handleResize(w *glfw.Window, width int, height int) {
+	log.Info("resize")
+	viewport.Width = int32(width)
+	viewport.Height = int32(height)
+}
+
+// draw copy framebuffer color texture to a new texture
+// clear framebuffer color texture
+// draw texture at reduced opacity to FrameBuffer
+// draw
 
 func main() {
 
@@ -421,6 +434,7 @@ func main() {
 	window.MakeContextCurrent()
 	window.SetKeyCallback(handleKey)
 	window.SetMouseButtonCallback(handleMouseButton)
+	window.SetFramebufferSizeCallback(handleResize)
 
 	// init glow
 	err = gl.Init()
@@ -435,7 +449,7 @@ func main() {
 
 	// create viewport
 	viewportWidth, viewportHeight := window.GetFramebufferSize()
-	viewport := &render.Viewport{
+	viewport = &render.Viewport{
 		X:      0,
 		Y:      0,
 		Width:  int32(viewportWidth),

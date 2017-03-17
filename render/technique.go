@@ -4,21 +4,52 @@ import (
 	"github.com/go-gl/gl/v4.1-core/gl"
 )
 
+var (
+	prevBlendFunc *blendFunc
+	prevCullFace  *cullFace
+	prevDepthMask *depthMask
+	prevDepthFunc *depthFunc
+	prevViewport  *Viewport
+	prevShader    *Shader
+	prevEnables   = make(map[uint32]bool)
+)
+
 type blendFunc struct {
 	sfactor uint32
 	dfactor uint32
+}
+
+func (b *blendFunc) Equals(other *blendFunc) bool {
+	return other != nil &&
+		b.sfactor == other.sfactor &&
+		b.dfactor == other.dfactor
 }
 
 type cullFace struct {
 	mode uint32
 }
 
+func (c *cullFace) Equals(other *cullFace) bool {
+	return other != nil &&
+		c.mode == other.mode
+}
+
 type depthMask struct {
 	flag bool
 }
 
+func (d *depthMask) Equals(other *depthMask) bool {
+	return other != nil &&
+		d.flag == other.flag
+}
+
 type depthFunc struct {
 	xfunc uint32
+}
+
+func (d *depthFunc) Equals(other *depthFunc) bool {
+	return other != nil &&
+		d.xfunc == other.xfunc
 }
 
 type clearColor struct {
@@ -31,7 +62,6 @@ type clearColor struct {
 // Technique represents a render technique.
 type Technique struct {
 	enables    []uint32
-	disables   []uint32
 	shader     *Shader
 	viewport   *Viewport
 	blendFunc  *blendFunc
@@ -41,14 +71,28 @@ type Technique struct {
 	clearColor *clearColor
 }
 
+// NewTechnique instantiates and returns a new technique instance.
+func NewTechnique() *Technique {
+	return &Technique{
+		blendFunc: &blendFunc{
+			sfactor: gl.ONE,
+			dfactor: gl.ZERO,
+		},
+		cullFace: &cullFace{
+			mode: gl.BACK,
+		},
+		depthMask: &depthMask{
+			flag: true,
+		},
+		depthFunc: &depthFunc{
+			xfunc: gl.LESS,
+		},
+	}
+}
+
 // Enable enables the rendering states for the technique.
 func (t *Technique) Enable(enable uint32) {
 	t.enables = append(t.enables, enable)
-}
-
-// Disable disables the rendering states for the technique.
-func (t *Technique) Disable(disable uint32) {
-	t.disables = append(t.disables, disable)
 }
 
 // Shader sets the shader for the technique.
@@ -102,70 +146,66 @@ func (t *Technique) ClearColor(r, g, b, a float32) {
 
 // Draw renders all commands using the technique.
 func (t *Technique) Draw(commands []*Command) {
-	t.bind()
+	t.setup()
 	for _, command := range commands {
 		command.Execute(t.shader)
 	}
-	t.unbind()
 }
 
-func (t *Technique) bind() {
+func (t *Technique) setup() {
 
 	// use shader
-	t.shader.Use()
+	if prevShader != t.shader {
+		t.shader.Use()
+		prevShader = t.shader
+	}
+
+	// track previous enables to determine which are stale
+	staleEnables := make(map[uint32]bool)
+	for state := range prevEnables {
+		staleEnables[state] = true
+	}
 
 	// enable state
 	for _, state := range t.enables {
-		gl.Enable(state)
-	}
-	// disable state
-	for _, state := range t.disables {
-		gl.Disable(state)
+		if !prevEnables[state] {
+			gl.Enable(state)
+			prevEnables[state] = true
+		}
+		delete(staleEnables, state)
 	}
 
-	// state functions
-	if t.blendFunc != nil {
+	// disable stale state
+	for state := range staleEnables {
+		gl.Disable(state)
+		delete(prevEnables, state)
+	}
+
+	// update state functions
+	if t.blendFunc != nil && !t.blendFunc.Equals(prevBlendFunc) {
 		gl.BlendFunc(t.blendFunc.sfactor, t.blendFunc.dfactor)
+		prevBlendFunc = t.blendFunc
 	}
-	if t.cullFace != nil {
+	if t.cullFace != nil && !t.cullFace.Equals(prevCullFace) {
 		gl.CullFace(t.cullFace.mode)
+		prevCullFace = t.cullFace
 	}
-	if t.depthMask != nil {
+	if t.depthMask != nil && !t.depthMask.Equals(prevDepthMask) {
 		gl.DepthMask(t.depthMask.flag)
+		prevDepthMask = t.depthMask
 	}
-	if t.depthFunc != nil {
+	if t.depthFunc != nil && !t.depthFunc.Equals(prevDepthFunc) {
 		gl.DepthFunc(t.depthFunc.xfunc)
+		prevDepthFunc = t.depthFunc
 	}
 
 	// update viewport
-	if t.viewport != nil {
+	if t.viewport != nil && !t.viewport.Equals(prevViewport) {
 		gl.Viewport(
 			t.viewport.X,
 			t.viewport.Y,
 			t.viewport.Width,
 			t.viewport.Height)
-	}
-}
-
-func (t *Technique) unbind() {
-	// TODO: shouldn't require this method, only change what is needed in Bind
-
-	// disable state
-	// for _, state := range t.enables {
-	// 	gl.Disable(state)
-	// }
-
-	// reset state functions
-	if t.blendFunc != nil {
-		gl.BlendFunc(gl.ONE, gl.ZERO)
-	}
-	if t.cullFace != nil {
-		gl.CullFace(gl.BACK)
-	}
-	if t.depthMask != nil {
-		gl.DepthMask(true)
-	}
-	if t.depthFunc != nil {
-		gl.DepthFunc(gl.LESS)
+		prevViewport = t.viewport
 	}
 }
