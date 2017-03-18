@@ -14,13 +14,13 @@ import (
 
 const (
 	// DefaultWrapS is the default wrap S parameter.
-	DefaultWrapS = gl.REPEAT
+	DefaultWrapS = gl.CLAMP_TO_EDGE
 	// DefaultWrapT is the default wrap T parameter.
-	DefaultWrapT = gl.REPEAT
+	DefaultWrapT = gl.CLAMP_TO_EDGE
 	// DefaultMinFilter is the default min filter parameter.
-	DefaultMinFilter = gl.LINEAR
+	DefaultMinFilter = gl.NEAREST
 	// DefaultMagFilter is the default mag filter parameter.
-	DefaultMagFilter = gl.LINEAR
+	DefaultMagFilter = gl.NEAREST
 )
 
 // Texture represents a 2D texture object.
@@ -42,7 +42,7 @@ type TextureParams struct {
 }
 
 // LoadRGBATexture loads an image file into an RGBA texture.
-func LoadRGBATexture(filename string, params *TextureParams) (*Texture, error) {
+func LoadRGBATexture(filename string) (*Texture, error) {
 	// load / decode image
 	file, err := os.Open(filename)
 	if err != nil {
@@ -63,7 +63,12 @@ func LoadRGBATexture(filename string, params *TextureParams) (*Texture, error) {
 		rgba.Pix,
 		uint32(rgba.Rect.Size().X),
 		uint32(rgba.Rect.Size().Y),
-		params), nil
+		&TextureParams{
+			WrapS:     gl.CLAMP_TO_EDGE,
+			WrapT:     gl.CLAMP_TO_EDGE,
+			MinFilter: gl.LINEAR_MIPMAP_LINEAR,
+			MagFilter: gl.LINEAR,
+		}), nil
 }
 
 // NewRGBATexture returns a new RGBA texture.
@@ -85,13 +90,13 @@ func NewRGBATexture(rgba []uint8, width uint32, height uint32, params *TexturePa
 		params.WrapS = DefaultWrapS
 	}
 	if params.WrapT == 0 {
-		params.WrapS = DefaultWrapT
+		params.WrapT = DefaultWrapT
 	}
 	if params.MinFilter == 0 {
-		params.WrapS = DefaultMinFilter
+		params.MinFilter = DefaultMinFilter
 	}
 	if params.MagFilter == 0 {
-		params.WrapS = DefaultMagFilter
+		params.MagFilter = DefaultMagFilter
 	}
 	// set params
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, params.MinFilter)
@@ -102,7 +107,7 @@ func NewRGBATexture(rgba []uint8, width uint32, height uint32, params *TexturePa
 	// get pointer
 	var data unsafe.Pointer
 	if rgba != nil {
-		data = gl.Ptr(data)
+		data = gl.Ptr(rgba)
 	}
 
 	// buffer texture

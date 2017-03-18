@@ -14,7 +14,10 @@ type FrameBuffer struct {
 
 // NewFrameBuffer instantiates and returns a new framebuffer instance.
 func NewFrameBuffer() *FrameBuffer {
+	var id uint32
+	gl.GenFramebuffers(1, &id)
 	return &FrameBuffer{
+		id:       id,
 		textures: make(map[uint32]*Texture),
 	}
 }
@@ -87,6 +90,12 @@ func (f *FrameBuffer) Resize(width uint32, height uint32) {
 	for _, texture := range f.textures {
 		texture.Resize(width, height)
 	}
+}
+
+// Destroy deallocates the framebuffer object.
+func (f *FrameBuffer) Destroy() {
+	gl.DeleteFramebuffers(1, &f.id)
+	f.id = 0
 }
 
 func (f *FrameBuffer) checkAttachmentError() error {
