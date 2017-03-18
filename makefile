@@ -33,6 +33,3 @@ install:
 	@go get -u github.com/golang/lint/golint
 	@go get -u github.com/Masterminds/glide
 	@glide install
-
-run:
-	@go run main.go

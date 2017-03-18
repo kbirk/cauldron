@@ -5,13 +5,14 @@ import (
 )
 
 var (
-	prevBlendFunc *blendFunc
-	prevCullFace  *cullFace
-	prevDepthMask *depthMask
-	prevDepthFunc *depthFunc
-	prevViewport  *Viewport
-	prevShader    *Shader
-	prevEnables   = make(map[uint32]bool)
+	prevBlendFunc   *blendFunc
+	prevCullFace    *cullFace
+	prevDepthMask   *depthMask
+	prevDepthFunc   *depthFunc
+	prevViewport    *Viewport
+	prevShader      *Shader
+	prevFrameBuffer *FrameBuffer
+	prevEnables     = make(map[uint32]bool)
 )
 
 type blendFunc struct {
@@ -61,14 +62,15 @@ type clearColor struct {
 
 // Technique represents a render technique.
 type Technique struct {
-	enables    []uint32
-	shader     *Shader
-	viewport   *Viewport
-	blendFunc  *blendFunc
-	cullFace   *cullFace
-	depthMask  *depthMask
-	depthFunc  *depthFunc
-	clearColor *clearColor
+	enables     []uint32
+	shader      *Shader
+	viewport    *Viewport
+	framebuffer *FrameBuffer
+	blendFunc   *blendFunc
+	cullFace    *cullFace
+	depthMask   *depthMask
+	depthFunc   *depthFunc
+	clearColor  *clearColor
 }
 
 // NewTechnique instantiates and returns a new technique instance.
@@ -153,6 +155,15 @@ func (t *Technique) Draw(commands []*Command) {
 }
 
 func (t *Technique) setup() {
+
+	// bind framebuffer
+	if t.framebuffer == nil && prevFrameBuffer != nil {
+		prevFrameBuffer.Unbind()
+	}
+	if t.framebuffer != nil && t.framebuffer != prevFrameBuffer {
+		t.framebuffer.Bind()
+		prevFrameBuffer = t.framebuffer
+	}
 
 	// use shader
 	if prevShader != t.shader {
