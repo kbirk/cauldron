@@ -306,7 +306,7 @@ func (s *Shader) queryUniforms() {
 			count := uniformCounts[index]
 			location := uniformLocations[index]
 
-			////
+			//// DEBUG
 			log.Infof("Uniform name: `%s`, type: `%d`, count: `%d`, location: %d",
 				name,
 				typ,
@@ -345,7 +345,7 @@ func (s *Shader) queryUniforms() {
 		blockIndex := blockIndices[index]
 		blockSize := blockSizes[index]
 
-		////
+		//// DEBUG
 		log.Infof("Uniform block name: `%s`, index: `%d`, size: %d",
 			blockName,
 			blockIndex,
@@ -399,6 +399,10 @@ func (s *Shader) queryUniformIndices() []uint32 {
 }
 
 func (s *Shader) queryUniformNames(indices []uint32) []string {
+	// check if no uniforms
+	if len(indices) == 0 {
+		return make([]string, 0)
+	}
 	// get uniform name lengths
 	nameLengths := make([]int32, len(indices))
 	gl.GetActiveUniformsiv(s.id, int32(len(indices)), &indices[0], gl.UNIFORM_NAME_LENGTH, &nameLengths[0])
@@ -418,6 +422,10 @@ func (s *Shader) queryUniformNames(indices []uint32) []string {
 }
 
 func (s *Shader) queryUniformTypes(indices []uint32) []uint32 {
+	// check if no uniforms
+	if len(indices) == 0 {
+		return make([]uint32, 0)
+	}
 	// get uniform types
 	types := make([]int32, len(indices))
 	gl.GetActiveUniformsiv(s.id, int32(len(indices)), &indices[0], gl.UNIFORM_TYPE, &types[0])
@@ -426,6 +434,10 @@ func (s *Shader) queryUniformTypes(indices []uint32) []uint32 {
 }
 
 func (s *Shader) queryUniformCounts(indices []uint32) []int32 {
+	// check if no uniforms
+	if len(indices) == 0 {
+		return make([]int32, 0)
+	}
 	// get uniform types
 	sizes := make([]int32, len(indices))
 	gl.GetActiveUniformsiv(s.id, int32(len(indices)), &indices[0], gl.UNIFORM_SIZE, &sizes[0])
@@ -433,6 +445,10 @@ func (s *Shader) queryUniformCounts(indices []uint32) []int32 {
 }
 
 func (s *Shader) queryParentBlockIndices(indices []uint32) []int32 {
+	// check if no uniforms
+	if len(indices) == 0 {
+		return make([]int32, 0)
+	}
 	// get uniform block indices (-1 is not part of a block)
 	blockIndices := make([]int32, len(indices))
 	gl.GetActiveUniformsiv(s.id, int32(len(indices)), &indices[0], gl.UNIFORM_BLOCK_INDEX, &blockIndices[0])
@@ -440,6 +456,10 @@ func (s *Shader) queryParentBlockIndices(indices []uint32) []int32 {
 }
 
 func (s *Shader) queryUniformOffsets(indices []uint32) []int32 {
+	// check if no uniforms
+	if len(indices) == 0 {
+		return make([]int32, 0)
+	}
 	// get uniform offsets
 	offsets := make([]int32, len(indices))
 	gl.GetActiveUniformsiv(s.id, int32(len(indices)), &indices[0], gl.UNIFORM_OFFSET, &offsets[0])
